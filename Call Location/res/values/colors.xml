@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <color name="DarkGrey">#333333</color>
+    <color name="SkyBlue">#ff6ac6</color>
+    
+    <color name="Brown">#9A5C0C</color>
+    <color name="White">#FFF6EB</color>
+    <color name="White_Transparent">#70FFF6EB</color>
+    
+    <color name="Red">#F0021A</color>
+    <color name="Amber">#FFA617</color>
+    <color name="Green">#23BA2D</color>    
+
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <PreferenceCategory
+        android:title="updating">
+        
+        <CheckBoxPreference
+            android:title="@string/pref_title"
+            android:summary="@string/pref_summary"
+            android:key="@string/pref_key" />
+            
+    </PreferenceCategory>
+    
+</PreferenceScreen>
