@@ -7,5 +7,8 @@
     <string name="pref_title">title</string>
     <string name="pref_summary">summary</string>
     <string name="pref_key">key</string>
+    
+    <string name="button_text_start">Start</string>
+    <string name="button_text_stop">Stop</string>
 
 </resources>

@@ -39,7 +39,6 @@ public class TempTestActivity extends Activity implements OnClickListener {
 			stopService(new Intent(this, CallLocationService.class));
 			break;
 		}
-
 	}
 
 }

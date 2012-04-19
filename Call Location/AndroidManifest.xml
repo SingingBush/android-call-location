@@ -14,8 +14,9 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
-        android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" >
+        android:icon="@drawable/icon_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/BackgroundStyle" >
         
         <uses-library android:name="com.google.android.maps" />
         

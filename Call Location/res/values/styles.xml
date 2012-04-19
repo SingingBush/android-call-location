@@ -4,7 +4,7 @@
     <style name="BackgroundStyle">       
 		<item name="android:layout_width">fill_parent</item>
 		<item name="android:layout_height">fill_parent</item>
-		<item name="android:background">@drawable/backgroundgradient</item>
+		<item name="android:background">@drawable/gradient_background</item>
 		<item name="android:orientation">vertical</item>
     </style>
     

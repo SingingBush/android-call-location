@@ -12,21 +12,25 @@
         android:textSize="20sp"
         android:padding="20dp" />
     
-    <Button 
-        android:layout_width="wrap_content" 
-        android:layout_height="wrap_content" 
-        android:id="@+id/buttonStart" 
-        android:text="Start" >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="2dp">
+
+        <Button
+            android:id="@+id/buttonStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_text_start"
+            android:textColor="@color/Green" />
+
+        <Button
+            android:id="@+id/buttonStop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_text_stop"
+            android:textColor="@color/Red" />
         
-    </Button>
-    
-    <Button 
-        android:layout_width="wrap_content" 
-        android:layout_height="wrap_content" 
-        android:text="Stop" 
-        android:id="@+id/buttonStop" >
-        
-    </Button>
-    
+    </LinearLayout>    
 
 </LinearLayout>

@@ -24,6 +24,7 @@ public class MainActivity extends TabActivity {
         tv.setTypeface(tf);
         
         TabHost tabHost = getTabHost();
+        tabHost.setup(); // think this is required
         
         // Tab for Call History
         TabSpec callHistorySpec = tabHost.newTabSpec("Call History");
