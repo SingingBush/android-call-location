@@ -22,18 +22,19 @@
         
         <activity
             android:label="@string/app_name"
-            android:name=".TempTestActivity" >
+            android:name=".TempTestActivity"
+            android:screenOrientation="portrait" >
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         
-        <activity android:name=".CallHistoryActivity" />
+        <activity android:name=".CallHistoryActivity" android:screenOrientation="portrait" />
         
-        <activity android:name=".CallMapActivity" />
+        <activity android:name=".CallMapActivity" android:screenOrientation="portrait" />
         
-        <activity android:name=".calllocation.SettingsActivity" />
+        <activity android:name=".calllocation.SettingsActivity" android:screenOrientation="portrait" />
         
         <service android:enabled="true" android:name=".CallLocationService" />
         
