@@ -2,6 +2,8 @@ package me.samael.android.calllocation;
 
 import java.util.Date;
 
+import me.samael.android.calllocation.data.CallDbAdapter;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +27,10 @@ public class CallLocationService extends Service implements LocationListener {
 	LocationManager locationManager;
 	TelephonyManager telephonyManager;
 	
+	Location location;
+	
+	private CallDbAdapter dbAdapter;
+	
 	@Override
 	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
@@ -36,10 +42,12 @@ public class CallLocationService extends Service implements LocationListener {
 		//Toast.makeText(this, "My Service Created", Toast.LENGTH_LONG).show();
 		Log.d(TAG, "onCreate");
 		
+		//location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER); // probably inaccurate but need to initialise
+		
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         
         locationManager.requestLocationUpdates(
-        		LocationManager.GPS_PROVIDER, MIN_TIME, DISTANCE_IN_METERS, this);
+        		LocationManager.GPS_PROVIDER, MIN_TIME, DISTANCE_IN_METERS, this); 
 		
         // register receiver here
         telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
@@ -75,31 +83,44 @@ public class CallLocationService extends Service implements LocationListener {
 		//player.start();
 	}
 	
+	public Location getLocation() {
+		return location;
+	}
+
+	public void setLocation(Location location) {
+		this.location = location;
+	}
+
 	void logLocation(Location location) {
     	Log.d(TAG, "location changed via " + location.getProvider() + ".\nTime: "
 				+ new Date(location.getTime()).toString() 
 				+ "\nLatitude: " + location.getLatitude()
 				+ "\nLongitude: " + location.getLongitude());
     }
-
-	@Override
-	public void onLocationChanged(Location location) {
-		logLocation(location);		
+	
+	private void addCallToDatabase(String phonenumber, Location location) {
+		dbAdapter.addCall(phonenumber, location.getLatitude(), location.getLongitude()); // problem here
 	}
 
-	@Override
+	//@Override
+	public void onLocationChanged(Location location) {
+		logLocation(location);	
+		setLocation(location);
+	}
+
+	//@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	//@Override
 	public void onProviderEnabled(String provider) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	//@Override
 	public void onProviderDisabled(String provider) {
 		// TODO Auto-generated method stub
 		
@@ -118,7 +139,8 @@ public class CallLocationService extends Service implements LocationListener {
 					break;
 				case TelephonyManager.CALL_STATE_RINGING:
 					//phone is ringing
-					Log.d("CallLocationService PhoneStateListener", "phone number: " + incomingNumber);
+					Log.d("CallLocationService PhoneStateListener", "Phone Call from: " + incomingNumber);
+					addCallToDatabase(incomingNumber, getLocation());
 					break;
 				default:
 					break;

@@ -12,11 +12,25 @@
         android:textSize="20sp"
         android:padding="20dp" />
     
-    <LinearLayout
+<!--     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="2dp">
 
+        <TextView
+            android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/hello"
+	        android:gravity="center"
+	        android:textSize="20sp"
+	        android:padding="20dp" />
+        
+    </LinearLayout> -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+        
         <Button
             android:id="@+id/buttonStart"
             android:layout_width="wrap_content"
@@ -30,7 +44,13 @@
             android:layout_height="wrap_content"
             android:text="@string/button_text_stop"
             android:textColor="@color/Red" />
-        
-    </LinearLayout>    
+
+        <TextView
+            android:id="@+id/tempfeedback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp" />
+
+    </LinearLayout>
 
 </LinearLayout>
