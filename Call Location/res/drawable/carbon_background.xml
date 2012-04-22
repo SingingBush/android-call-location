@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <bitmap
+            android:src="@drawable/carbon_fibre_background_tile"
+            android:tileMode="repeat" />
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="300"
+                android:startColor="#4ffafafa"
+                android:endColor="#1f000000" />  
+
+        </shape>
+    </item>
+</layer-list>

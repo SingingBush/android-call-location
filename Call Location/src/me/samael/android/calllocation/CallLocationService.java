@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
@@ -19,6 +20,9 @@ import android.util.Log;
 public class CallLocationService extends Service implements LocationListener {
 	
 	private static final String TAG = CallLocationService.class.getSimpleName();
+	
+	// Binder given to clients
+    private final IBinder mBinder = new LocalBinder();
 	
 	private static final int ONE_SECOND = 1000;
 	private static final long MIN_TIME = 35000L; // 0 is lowest value can use
@@ -31,15 +35,24 @@ public class CallLocationService extends Service implements LocationListener {
 	
 	private CallDbAdapter dbAdapter;
 	
-	@Override
-	public IBinder onBind(Intent intent) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	/**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        CallLocationService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return CallLocationService.this;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
 	
 	@Override
 	public void onCreate() {
-		//Toast.makeText(this, "My Service Created", Toast.LENGTH_LONG).show();
 		Log.d(TAG, "onCreate");
 		
 		//location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER); // probably inaccurate but need to initialise
@@ -53,21 +66,15 @@ public class CallLocationService extends Service implements LocationListener {
         telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(
         		new MyPhoneStateListener(), MyPhoneStateListener.LISTEN_CALL_STATE);
-        
-		//player = MediaPlayer.create(this, R.raw.braincandy);
-		//player.setLooping(false); // Set looping
 	}
 
 	@Override
 	public void onDestroy() {
-		//Toast.makeText(this, "My Service Stopped", Toast.LENGTH_LONG).show();
 		Log.d(TAG, "onDestroy");
 		
 		locationManager.removeUpdates(this);
 		
 		// unregister receiver here:
-		
-		//player.stop();
 	}
 	
 	@Override
@@ -80,7 +87,6 @@ public class CallLocationService extends Service implements LocationListener {
 	public void onStart(Intent intent, int startid) {
 		//Toast.makeText(this, "My Service Started", Toast.LENGTH_LONG).show();
 		Log.d(TAG, "onStart");
-		//player.start();
 	}
 	
 	public Location getLocation() {

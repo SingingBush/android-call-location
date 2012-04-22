@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <style name="BackgroundStyle">       
+    <style name="CarbonTheme" parent="android:Theme">       
 		<item name="android:layout_width">fill_parent</item>
 		<item name="android:layout_height">fill_parent</item>
-		<item name="android:background">@drawable/gradient_background</item>
+		<item name="android:windowBackground">@drawable/carbon_background</item>
 		<item name="android:orientation">vertical</item>
     </style>
     
