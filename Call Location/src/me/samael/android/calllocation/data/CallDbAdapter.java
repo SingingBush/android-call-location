@@ -59,6 +59,8 @@ public class CallDbAdapter {
 	}
 	
 	public boolean addCall(String phonenumber, double latitude, double longitude) {
+		Log.d(TAG, "Attempting to add new entry to " + TABLE_NAME + ".\nPhone Number: " 
+				+ phonenumber + "\nLocation: " + String.valueOf(latitude) + String.valueOf(longitude));
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(KEY_PHONE_NUMBER, phonenumber);
 		initialValues.put(KEY_LATITUDE, latitude);

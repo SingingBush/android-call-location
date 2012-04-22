@@ -37,12 +37,6 @@
         <activity android:name=".calllocation.SettingsActivity" android:screenOrientation="portrait" />
         
         <service android:enabled="true" android:name=".CallLocationService" />
-        
-        <receiver android:name=".ServiceReceiver">  
-			<intent-filter>  
-				<action android:name="android.intent.action.PHONE_STATE" />  
-	    	</intent-filter>  
-		</receiver>
 		
     </application>
 
