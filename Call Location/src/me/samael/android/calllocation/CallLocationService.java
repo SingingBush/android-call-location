@@ -23,8 +23,14 @@ public class CallLocationService extends Service {
 	// Binder given to clients
     private final IBinder mBinder = new LocalBinder();
     
-	private static final long MIN_TIME = 0; // 0 is lowest value can use
+	private static final long MIN_TIME = 1000; // 0 is lowest value can use
 	private static final float DISTANCE_IN_METERS = 1.0f; // 0 is lowest value can use
+	
+	private int state;
+	public static final int STATE_NONE = 0;
+	public static final int STATE_LISTENING = 1;
+	private boolean gps_enabled = false;
+	private boolean network_enabled = false;
 	
 	LocationManager locationManager;
 	InnerLocationListener locationListener;
@@ -46,6 +52,15 @@ public class CallLocationService extends Service {
             return CallLocationService.this;
         }
     }
+    
+    private synchronized void setState(int state) {
+        Log.d(TAG, "setState() " + this.state + " -> " + state);
+        this.state = state;
+    }
+    
+    public synchronized int getState() {
+        return state;
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -60,23 +75,52 @@ public class CallLocationService extends Service {
 		Log.v(TAG, "opening database connection");
 		dbAdapter.open();
 		
-		Log.d(TAG, "getting location service");
+		Log.d(TAG, "getting location service...");
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		Log.d(TAG, "Location service: " + locationManager.toString());
 		
 		Log.d(TAG, "getting best provider...");
 		Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         String provider = locationManager.getBestProvider(criteria, true);     
         Log.d(TAG, "Best Provider: " + provider);
+        
+        locationListener = new InnerLocationListener();
+		Log.d(TAG, "Inner Location Listener instantiated");    
 		
-        Log.d(TAG, "getting last known location...");
-        location = locationManager.getLastKnownLocation(provider); // could also use (LocationManager.GPS_PROVIDER)
-        Log.d(TAG, "Location:\n latitude  = " + location.getLatitude() + "\n longitude = " + location.getLatitude());
-        
-		locationListener = new InnerLocationListener();
-		Log.d(TAG, "Inner Location Listener instantiated");
-        
         locationManager.requestLocationUpdates(provider, MIN_TIME, DISTANCE_IN_METERS, locationListener);
+		
+        // exceptions will be thrown if provider is not permitted.
+        try {
+        	gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (Exception ex) {
+        	Log.e(TAG, "gps_enabled = " + gps_enabled + "\n Exception" + ex.getMessage());
+        }
+        try {
+        	network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ex) {
+        	Log.e(TAG, "network_enabled = " + network_enabled + "\n Exception" + ex.getMessage());
+        }
+        
+        Log.d(TAG, "getting last known location...");
+        try {
+        	location = locationManager.getLastKnownLocation(provider); // try get best provider
+        } catch (Exception e) {
+        	Log.e(TAG, "Unable to get last known location with " + provider);
+        	if (gps_enabled) {
+        		location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER); // default to GPS
+        	} else if (network_enabled) {
+        		location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); // default to Network
+        	}
+        }
+        
+        if (location != null) {
+        	Log.d(TAG, "Location:\n latitude  = " + location.getLatitude() + "\n longitude = " + location.getLatitude());
+        } else {
+        	Log.d(TAG, "Location is null!");
+        }
+        
+        
         
         Log.d(TAG, "Instantiating phone state listener...");
         phoneStateListener = new MyPhoneStateListener();

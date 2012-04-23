@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -22,10 +23,10 @@ public class TempTestActivity extends Activity implements OnClickListener {
 	private static final String TAG = "TempTestActivity";
 	Button buttonStart, buttonStop;
 	TextView tempfeedback;
-	Intent service;
+	Intent callLocationServiceIntent;
 	
 	CallLocationService callLocationService;
-	boolean mBound = false;
+	boolean serviceBound = false;
 	
 	@Override
 	public void onAttachedToWindow() {
@@ -47,17 +48,17 @@ public class TempTestActivity extends Activity implements OnClickListener {
 		
 		tempfeedback = (TextView) findViewById(R.id.tempfeedback);
 		
-		service = new Intent(this, CallLocationService.class);
+		callLocationServiceIntent = new Intent(this, CallLocationService.class);
 	}
 
 	//@Override
 	public void onClick(View view) {
 		switch (view.getId()) {
 		case R.id.buttonStart:
-			if (!mBound) {
+			if (!serviceBound) {
 				Log.d(TAG, "onClick: starting service");
 				tempfeedback.setText("starting service");
-				bindService(service, mConnection, Context.BIND_AUTO_CREATE);
+				bindService(callLocationServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 			} else {
 				Location loc = callLocationService.getLocation();
 				tempfeedback.setText(loc.getLatitude() + " " + loc.getLongitude());
@@ -70,11 +71,11 @@ public class TempTestActivity extends Activity implements OnClickListener {
 			break;
 		case R.id.buttonStop:
 			// Unbind from the service
-	        if (mBound) {
+	        if (serviceBound) {
 	        	Log.d(TAG, "onClick: stopping service");
 				tempfeedback.setText("stopping service");
-	            unbindService(mConnection);
-	            mBound = false;
+	            unbindService(serviceConnection);
+	            serviceBound = false;
 	        }
 			//Log.d(TAG, "onClick: stopping service");
 			//tempfeedback.setText("stopping service");
@@ -84,7 +85,7 @@ public class TempTestActivity extends Activity implements OnClickListener {
 	}
 	
 	/** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private ServiceConnection serviceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className,
@@ -92,13 +93,25 @@ public class TempTestActivity extends Activity implements OnClickListener {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             LocalBinder binder = (LocalBinder) service;
             callLocationService = binder.getService();
-            mBound = true;
+            serviceBound = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
+            serviceBound = false;
         }
     };
+    
+    // The BroadcastReceiver that listens for updates from the
+    // CallLocationService
+    private final BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {
 
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			
+			Log.d(TAG, "receiver has speed: " + callLocationService.getLocation().getSpeed());
+			
+		}
+    };
 }
