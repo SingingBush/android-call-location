@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="2dp">
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="2dp" >
+        <TextView 
+            android:text="@string/callhistory_number"
+            android:textSize="20sp" />
+        <TextView 
+            android:id="@+id/callHistoryPhoneNumber"
+            android:layout_marginLeft="12dp"
+            android:textSize="20sp"
+            android:textColor="@color/Amber"/>
+    </TableRow>
+    
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="2dp" >
+        <TextView 
+            android:text="@string/callhistory_time"
+            android:textSize="20sp" />
+        <TextView 
+            android:id="@+id/callHistoryDateTime"
+            android:layout_marginLeft="12dp"
+            android:textSize="20sp"
+            android:textColor="@color/SkyBlue" />
+    </TableRow>
+
+</TableLayout>

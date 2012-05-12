@@ -11,10 +11,10 @@ public class CallDbAdapter {
 	
 	private static final String TAG = CallDbAdapter.class.getSimpleName();
 	
-	private static final String KEY_ID = "_id";
-	private static final String KEY_PHONE_NUMBER = "phone";
-	private static final String KEY_LONGITUTE = "longitude";
-	private static final String KEY_LATITUDE = "latitude";
+	public static final String KEY_ID = "_id";
+	public static final String KEY_PHONE_NUMBER = "phone";
+	public static final String KEY_LONGITUTE = "longitude";
+	public static final String KEY_LATITUDE = "latitude";
 	
 	private static final String DATABASE_NAME = "calllocation";
 	private static final int DATABASE_VERSION = 2;
@@ -60,7 +60,7 @@ public class CallDbAdapter {
 	
 	public boolean addCall(String phonenumber, double latitude, double longitude) {
 		Log.d(TAG, "Attempting to add new entry to " + TABLE_NAME + ".\nPhone Number: " 
-				+ phonenumber + "\nLocation: " + String.valueOf(latitude) + String.valueOf(longitude));
+				+ phonenumber + "\nLocation: " + String.valueOf(latitude) + " by " + String.valueOf(longitude));
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(KEY_PHONE_NUMBER, phonenumber);
 		initialValues.put(KEY_LATITUDE, latitude);
@@ -82,5 +82,20 @@ public class CallDbAdapter {
 		}
 		return cursor;
 	}
-
+	
+	public Cursor selectAllFromCallHistoryWhereIdEquals(Long id) {
+		String sqlQuery = KEY_ID + "=" + id;
+		Cursor cursor = database.query(TABLE_NAME, null, sqlQuery, null, null, null, null);
+		
+		if (cursor.moveToNext()) {
+			try {
+				cursor.moveToFirst();
+				return cursor;
+			} catch (SQLException e) {
+				Log.e(TAG, e.getMessage());
+				return null;
+			}
+		} else
+			return null;
+	}
 }

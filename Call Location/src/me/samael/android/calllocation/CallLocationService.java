@@ -1,7 +1,12 @@
 package me.samael.android.calllocation;
 
 import java.util.Date;
+
+import me.samael.android.calllocation.RecentLocation.LocationResult;
 import me.samael.android.calllocation.data.CallDbAdapter;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -23,8 +28,8 @@ public class CallLocationService extends Service {
 	// Binder given to clients
     private final IBinder mBinder = new LocalBinder();
     
-	private static final long MIN_TIME = 1000; // 0 is lowest value can use
-	private static final float DISTANCE_IN_METERS = 1.0f; // 0 is lowest value can use
+    private static final long FIVE_SECONDS = 5000L;
+	private static final float FIVE_METERS = 5.0f; // 0 is lowest value can use
 	
 	private int state;
 	public static final int STATE_NONE = 0;
@@ -35,9 +40,11 @@ public class CallLocationService extends Service {
 	LocationManager locationManager;
 	InnerLocationListener locationListener;
 	
+	RecentLocation lastKnownLocation;
+	
 	TelephonyManager telephonyManager;
 	MyPhoneStateListener phoneStateListener;
-	
+	private NotificationManager notificationManager;
 	Location location;
 	
 	private CallDbAdapter dbAdapter;
@@ -71,6 +78,12 @@ public class CallLocationService extends Service {
 	public void onCreate() {
 		Log.d(TAG, "onCreate");
 		
+		notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+		showNotification();
+		
+		lastKnownLocation = new RecentLocation();
+		lastKnownLocation.getLocation(this, locationResult);
+		
 		dbAdapter = new CallDbAdapter(this);
 		Log.v(TAG, "opening database connection");
 		dbAdapter.open();
@@ -88,7 +101,7 @@ public class CallLocationService extends Service {
         locationListener = new InnerLocationListener();
 		Log.d(TAG, "Inner Location Listener instantiated");    
 		
-        locationManager.requestLocationUpdates(provider, MIN_TIME, DISTANCE_IN_METERS, locationListener);
+        locationManager.requestLocationUpdates(provider, FIVE_SECONDS, FIVE_METERS, locationListener);
 		
         // exceptions will be thrown if provider is not permitted.
         try {
@@ -108,16 +121,17 @@ public class CallLocationService extends Service {
         } catch (Exception e) {
         	Log.e(TAG, "Unable to get last known location with " + provider);
         	if (gps_enabled) {
-        		location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER); // default to GPS
+        		location.set(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)); // default to GPS
         	} else if (network_enabled) {
-        		location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); // default to Network
+        		location.set(locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)); // default to Network
         	}
         }
         
         if (location != null) {
         	Log.d(TAG, "Location:\n latitude  = " + location.getLatitude() + "\n longitude = " + location.getLatitude());
         } else {
-        	Log.d(TAG, "Location is null!");
+        	Log.d(TAG, "Location is null - generating new location");
+        	location = new Location(provider);
         }
         
         
@@ -133,6 +147,7 @@ public class CallLocationService extends Service {
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
+		notificationManager.cancel(R.string.app_name); // this removes icon from notification area
 		
 		Log.v(TAG, "Stop listening for location updates");
 		locationManager.removeUpdates(locationListener);
@@ -170,7 +185,7 @@ public class CallLocationService extends Service {
 	private void addCallToDatabase(String phonenumber, Location location) {
 		Log.d(TAG, "Adding entry to database:\nCall From " + phonenumber 
 				+ "\nlatitude "+ location.getLatitude() + "\nlongitude " + location.getLongitude());
-		dbAdapter.addCall(phonenumber, location.getLatitude(), location.getLongitude()); // todo - problem here
+		dbAdapter.addCall(phonenumber, location.getLatitude(), location.getLongitude()); // todo - potential problem here if lat and long are null
 	}
 	
 	class InnerLocationListener implements LocationListener {
@@ -213,11 +228,59 @@ public class CallLocationService extends Service {
 				case TelephonyManager.CALL_STATE_RINGING:
 					//phone is ringing
 					Log.d("CallLocationService PhoneStateListener", "Phone Call from: " + incomingNumber);
-					addCallToDatabase(incomingNumber, getLocation());
+					addCallToDatabase(incomingNumber, getCurrentLocation()); //getLocation());
 					break;
 				default:
 					break;
 			}
 		}
 	}
+	
+	private Location getCurrentLocation() {
+		Log.d(TAG, "getting best provider...");
+		Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        String provider = locationManager.getBestProvider(criteria, true);     
+        Log.d(TAG, "Best Provider: " + provider);
+        
+        Location loc = locationManager.getLastKnownLocation(provider);
+        return (loc != null) ? loc : new Location(provider);
+	}
+	
+	// double currentLatitude = currentLocation.getLatitude();
+	// double currentLongitude = currentLocation.getLongitude();
+	
+	LocationResult locationResult = new LocationResult() {
+		@Override
+		public void onLocationUpdated(Location location) {
+			//Got the location! 
+		}
+	};
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+     * Shows a notification in the status bar while service is running.
+     */
+    private void showNotification() {
+        CharSequence appName = getText(R.string.app_name);
+        CharSequence notificationSubText = getText(R.string.service_subtext);
+        
+        Notification notification = new Notification(R.drawable.icon_launcher, appName, System.currentTimeMillis());
+        notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
+        
+        //Context context = getApplicationContext();       
+        Intent mainActivityIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, mainActivityIntent, 0);
+        notification.setLatestEventInfo(this, appName, notificationSubText, contentIntent);
+        
+        notificationManager.notify(R.string.app_name, notification);
+    }
 }

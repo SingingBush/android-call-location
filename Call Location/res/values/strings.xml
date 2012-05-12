@@ -10,10 +10,21 @@
     <string name="button_text_start">Start</string>
     <string name="button_text_stop">Stop</string>
     
+    <string name="menuoption_callhistory">View Call History</string>
     <string name="menuoption_preferences">Preferences</string>
 	<string name="menuoption_about">About</string>
 	
+	<string name="callhistoryactivity_title">Call History</string>
+	<string name="callmapactivity_title">View Call Location</string>
+	
+	<string name="service_title">Call Location Service</string>
+	<string name="service_subtext">service active</string>
+	
 	<string name="about_title">About Call Location</string>
 	<string name="about_text">Call location takes note of your geo-location when a call is received.</string>
+	
+	<string name="callhistory_empty">There are no calls to display</string>
+	<string name="callhistory_time">Time:</string>
+	<string name="callhistory_number">From:</string>
 
 </resources>
