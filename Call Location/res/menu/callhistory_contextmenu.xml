@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item 
+        android:id="@+id/contextmenu_returncall"
+        android:title="@string/callhistory_contextmenu_returncall">       
+    </item>
+    <item 
+        android:id="@+id/contextmenu_delete"
+        android:title="@string/callhistory_contextmenu_delete">       
+    </item>
+
+</menu>

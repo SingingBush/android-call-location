@@ -1,13 +1,21 @@
 package me.samael.android.calllocation;
 
 import me.samael.android.calllocation.data.CallDbAdapter;
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
@@ -21,7 +29,41 @@ public class CallHistoryActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.callhistory);
         
+        registerForContextMenu(getListView());
+        
         callDbAdapter = new CallDbAdapter(this);
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, view, menuInfo);
+		
+		if (view == getListView()) {
+			getMenuInflater().inflate(R.menu.callhistory_contextmenu, menu);
+			
+			AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+			
+			long id = getListAdapter().getItemId(info.position);
+			
+			menu.setHeaderTitle("Call " + id);
+			menu.setHeaderIcon(R.drawable.phone_icon);		
+		}
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+		long rowId = info.id;
+		
+		switch (item.getItemId()) {
+		case R.id.contextmenu_returncall:
+			startCallActionForGivenRow(rowId);
+			return true;
+		case R.id.contextmenu_delete:
+			confirmDeletionOfRow(rowId);
+			return true;
+		}
+		return false;		
 	}
 	
 	@Override
@@ -63,32 +105,22 @@ public class CallHistoryActivity extends ListActivity {
     }
 	
 	private void fillListView() {
-		Log.v(TAG, "fillListView");
-		
-        Log.v(TAG, "opening database connection");
+		Log.v(TAG, "filling CallHistory ListView");
         callDbAdapter.open();
-        
-//        Cursor productCursor = productDbAdapter.selectAllFromProducts();
-//        Log.v(TAG, "Cursor size: " + productCursor.getCount());
-//		startManagingCursor(productCursor);
-//		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.productrow, productCursor, FROM_PRODUCTS_TABLE, TO_PRODUCT_ROW_VIEW_IDS);
-//	    setListAdapter(adapter);
-		//productCursor.close(); // DO NOT CLOSE THE CURSOR HERE, IT PREVENTS THE LIST BEING POPULATED!
         
         String[] fromDatabase = { CallDbAdapter.KEY_PHONE_NUMBER };
         int[] toRowIds = { R.id.callHistoryPhoneNumber };
         
 		try {
-			Cursor productCursor = callDbAdapter.selectAllFromCallHistory();
-			Log.v(TAG, "Cursor size: " + productCursor.getCount());
-			startManagingCursor(productCursor);
-			SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.callhistoryrow, productCursor, fromDatabase, toRowIds);
+			Cursor cursor = callDbAdapter.selectAllFromCallHistory();
+			Log.v(TAG, "Cursor size: " + cursor.getCount());
+			startManagingCursor(cursor);
+			SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.callhistoryrow, cursor, fromDatabase, toRowIds);
 	        setListAdapter(adapter);
 		} catch (SQLException e) {
 			Log.e(TAG, e.getMessage());
-		} // DO NOT CLOSE THE CURSOR HERE, IT PREVENTS THE LIST BEING POPULATED!
+		}
         
-        Log.v(TAG, "closing database connection");
         callDbAdapter.close();
 	}
 	
@@ -96,5 +128,52 @@ public class CallHistoryActivity extends ListActivity {
 		Intent viewCallLocation = new Intent(this, CallMapActivity.class);
 		viewCallLocation.putExtra(CallDbAdapter.KEY_ID, rowId);
 		startActivity(viewCallLocation);
+	}
+	
+	private void startCallActionForGivenRow(final long rowId) {
+		callDbAdapter.open();        		
+		Cursor cursor = callDbAdapter.selectAllFromCallHistoryWhereIdEquals(rowId);
+		int index = cursor.getColumnIndex(CallDbAdapter.KEY_PHONE_NUMBER);
+		String phonenumber = cursor.getString(index);
+        callDbAdapter.close();
+		
+        if (phonenumber.length() > 0) {
+        	try {
+    			Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phonenumber));
+    			callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    			startActivity(callIntent);
+    		} catch (ActivityNotFoundException e) {
+    	        Log.e(TAG, "Unable to make call: " + e.getMessage());
+    	    }
+        } else
+        	Log.e(TAG, "Unable to phone: " + phonenumber);
+	}
+	
+	private void confirmDeletionOfRow(final long rowId) {
+		if (rowId > 0) {
+			new AlertDialog.Builder(this).setTitle(R.string.callhistory_contextmenu_confirm_deletion)
+			.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					deleteRowFromDatabase(rowId);					
+				}
+			}).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// do nothing				
+				}
+			}).show();
+		}
+	}
+	
+	private void deleteRowFromDatabase(final long rowId) {
+		Log.v(TAG, "deleteRowFromDatabase: " + rowId);
+        callDbAdapter.open();        
+        if (callDbAdapter.deleteFromCallHistoryWhereIdEquals(rowId)) {
+        	Log.v(TAG, "Table row deleted: " + rowId);
+        } else
+        	Log.e(TAG, "Unable to delete row: " + rowId);
+        callDbAdapter.close();
+        fillListView(); // need to refresh the list
 	}
 }

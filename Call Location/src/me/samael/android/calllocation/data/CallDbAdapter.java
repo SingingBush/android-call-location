@@ -98,4 +98,14 @@ public class CallDbAdapter {
 		} else
 			return null;
 	}
+	
+	public boolean deleteFromCallHistoryWhereIdEquals(long rowId) {
+		String sqlQuery = KEY_ID + "=" + rowId;		
+		try {
+			return database.delete(TABLE_NAME, sqlQuery, null) > 0;
+		} catch (SQLException e) {
+			Log.e(TAG, e.getMessage());
+			return false;
+		}		
+	}
 }

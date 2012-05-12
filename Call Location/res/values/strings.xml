@@ -26,5 +26,8 @@
 	<string name="callhistory_empty">There are no calls to display</string>
 	<string name="callhistory_time">Time:</string>
 	<string name="callhistory_number">From:</string>
+	<string name="callhistory_contextmenu_returncall">Return Call</string>
+	<string name="callhistory_contextmenu_delete">Delete Entry</string>
+	<string name="callhistory_contextmenu_confirm_deletion">Are you sure?</string>
 
 </resources>
