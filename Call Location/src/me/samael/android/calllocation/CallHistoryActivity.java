@@ -108,8 +108,8 @@ public class CallHistoryActivity extends ListActivity {
 		Log.v(TAG, "filling CallHistory ListView");
         callDbAdapter.open();
         
-        String[] fromDatabase = { CallDbAdapter.KEY_PHONE_NUMBER };
-        int[] toRowIds = { R.id.callHistoryPhoneNumber };
+        String[] fromDatabase = { CallDbAdapter.KEY_PHONE_NUMBER, CallDbAdapter.KEY_DATETIME };
+        int[] toRowIds = { R.id.callHistoryPhoneNumber, R.id.callHistoryDateTime };
         
 		try {
 			Cursor cursor = callDbAdapter.selectAllFromCallHistory();

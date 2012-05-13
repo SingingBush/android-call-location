@@ -1,7 +1,6 @@
 package me.samael.android.calllocation.data;
 
 import me.samael.android.calllocation.R;
-import me.samael.android.calllocation.R.string;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;

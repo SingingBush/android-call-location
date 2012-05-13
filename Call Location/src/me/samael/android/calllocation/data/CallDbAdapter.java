@@ -15,6 +15,7 @@ public class CallDbAdapter {
 	public static final String KEY_PHONE_NUMBER = "phone";
 	public static final String KEY_LONGITUTE = "longitude";
 	public static final String KEY_LATITUDE = "latitude";
+	public static final String KEY_DATETIME = "timestamp";
 	
 	private static final String DATABASE_NAME = "calllocation";
 	private static final int DATABASE_VERSION = 2;
@@ -26,7 +27,8 @@ public class CallDbAdapter {
 			+ KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
 			+ KEY_PHONE_NUMBER + " TEXT NOT NULL, "
 			+ KEY_LONGITUTE + " INTEGER, "
-			+ KEY_LATITUDE + " INTEGER);";
+			+ KEY_LATITUDE + " INTEGER, "
+			+ KEY_DATETIME + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
 	
 	private DataBaseHelper databaseHelper;
 	private SQLiteDatabase database;
