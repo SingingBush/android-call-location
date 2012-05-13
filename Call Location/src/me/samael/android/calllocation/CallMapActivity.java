@@ -61,7 +61,7 @@ public class CallMapActivity extends MapActivity {
                 Log.v(TAG, "Creating GeoPoint from lat: " + dlat + " and long: " + dlong);
                 
                 GeoPoint geoPoint = new GeoPoint( (int) (dlat*1E6), (int) (dlong*1E6) );
-                mapController.setZoom(20); //Fixed Zoom Level
+                mapController.setZoom(16); // between 12 and 18 should be good - should be a preference
                 //mapController.setCenter(geoPoint);
                 mapController.animateTo(geoPoint);
                 

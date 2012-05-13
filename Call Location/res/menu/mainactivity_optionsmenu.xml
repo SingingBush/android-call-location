@@ -6,6 +6,10 @@
         android:title="@string/menuoption_callhistory"/>
     
     <item
+        android:id="@+id/menu_Newsfeed"
+        android:title="@string/menuoption_newsfeed"/>
+    
+    <item
         android:id="@+id/menu_Preferences"
         android:title="@string/menuoption_preferences"/>
 

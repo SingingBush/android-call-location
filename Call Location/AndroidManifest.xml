@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 <!--     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> -->
     <uses-permission android:name="android.permission.LOCATION"/>
-<!--     <uses-permission android:name="android.permission.INTERNET" />   -->
+    <uses-permission android:name="android.permission.INTERNET" />  
     <uses-permission android:name="android.permission.CALL_PHONE" />  
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
@@ -33,6 +33,11 @@
         <activity
             android:name=".CallHistoryActivity"
             android:label="@string/callhistoryactivity_title"
+            android:screenOrientation="portrait" />
+        
+        <activity
+            android:name=".NewsFeedActivity"
+            android:label="@string/newsfeedactivity_title"
             android:screenOrientation="portrait" />
         
         <activity

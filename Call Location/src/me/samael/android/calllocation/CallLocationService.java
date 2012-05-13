@@ -25,6 +25,8 @@ public class CallLocationService extends Service {
 	
 	private static final String TAG = CallLocationService.class.getSimpleName();
 	
+	private static final boolean DEBUG_MODE = true;
+	
 	// Binder given to clients
     private final IBinder mBinder = new LocalBinder();
     
@@ -61,7 +63,7 @@ public class CallLocationService extends Service {
     }
     
     private synchronized void setState(int state) {
-        Log.d(TAG, "setState() " + this.state + " -> " + state);
+        if(DEBUG_MODE) Log.d(TAG, "setState() " + this.state + " -> " + state);
         this.state = state;
     }
     
@@ -76,7 +78,7 @@ public class CallLocationService extends Service {
 	
 	@Override
 	public void onCreate() {
-		Log.d(TAG, "onCreate");
+		if(DEBUG_MODE) Log.d(TAG, "onCreate");
 		
 		notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 		showNotification();
@@ -85,21 +87,21 @@ public class CallLocationService extends Service {
 		lastKnownLocation.getLocation(this, locationResult);
 		
 		dbAdapter = new CallDbAdapter(this);
-		Log.v(TAG, "opening database connection");
+		if(DEBUG_MODE) Log.v(TAG, "opening database connection");
 		dbAdapter.open();
 		
-		Log.d(TAG, "getting location service...");
+		if(DEBUG_MODE) Log.d(TAG, "getting location service...");
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		Log.d(TAG, "Location service: " + locationManager.toString());
+		if(DEBUG_MODE) Log.d(TAG, "Location service: " + locationManager.toString());
 		
-		Log.d(TAG, "getting best provider...");
+		if(DEBUG_MODE) Log.d(TAG, "getting best provider...");
 		Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         String provider = locationManager.getBestProvider(criteria, true);     
-        Log.d(TAG, "Best Provider: " + provider);
+        if(DEBUG_MODE) Log.d(TAG, "Best Provider: " + provider);
         
         locationListener = new InnerLocationListener();
-		Log.d(TAG, "Inner Location Listener instantiated");    
+        if(DEBUG_MODE) Log.d(TAG, "Inner Location Listener instantiated");    
 		
         locationManager.requestLocationUpdates(provider, FIVE_SECONDS, FIVE_METERS, locationListener);
 		
@@ -115,7 +117,7 @@ public class CallLocationService extends Service {
         	Log.e(TAG, "network_enabled = " + network_enabled + "\n Exception" + ex.getMessage());
         }
         
-        Log.d(TAG, "getting last known location...");
+        if(DEBUG_MODE) Log.d(TAG, "getting last known location...");
         try {
         	location = locationManager.getLastKnownLocation(provider); // try get best provider
         } catch (Exception e) {
@@ -128,31 +130,29 @@ public class CallLocationService extends Service {
         }
         
         if (location != null) {
-        	Log.d(TAG, "Location:\n latitude  = " + location.getLatitude() + "\n longitude = " + location.getLatitude());
+        	if(DEBUG_MODE) Log.d(TAG, "Location:\n latitude  = " + location.getLatitude() + "\n longitude = " + location.getLatitude());
         } else {
-        	Log.d(TAG, "Location is null - generating new location");
+        	if(DEBUG_MODE) Log.d(TAG, "Location is null - generating new location");
         	location = new Location(provider);
         }
         
-        
-        
-        Log.d(TAG, "Instantiating phone state listener...");
+        if(DEBUG_MODE) Log.d(TAG, "Instantiating phone state listener...");
         phoneStateListener = new MyPhoneStateListener();
-        Log.d(TAG, "getting telephony service...");
+        if(DEBUG_MODE) Log.d(TAG, "getting telephony service...");
         telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        Log.d(TAG, "listen for phone state...");
+        if(DEBUG_MODE) Log.d(TAG, "listen for phone state...");
         telephonyManager.listen(phoneStateListener, MyPhoneStateListener.LISTEN_CALL_STATE);
 	}
 
 	@Override
 	public void onDestroy() {
-		Log.d(TAG, "onDestroy");
+		if(DEBUG_MODE) Log.d(TAG, "onDestroy");
 		notificationManager.cancel(R.string.app_name); // this removes icon from notification area
 		
-		Log.v(TAG, "Stop listening for location updates");
+		if(DEBUG_MODE) Log.v(TAG, "Stop listening for location updates");
 		locationManager.removeUpdates(locationListener);
 		
-		Log.v(TAG, "Stop listening to phone state");
+		if(DEBUG_MODE) Log.v(TAG, "Stop listening to phone state");
 		telephonyManager.listen(phoneStateListener, MyPhoneStateListener.LISTEN_NONE);
 	}
 	
@@ -164,7 +164,7 @@ public class CallLocationService extends Service {
 	
 	@Override
 	public void onStart(Intent intent, int startid) {
-		Log.d(TAG, "Call Location Service started");
+		if(DEBUG_MODE) Log.d(TAG, "Call Location Service started");
 	}
 	
 	public Location getLocation() {
@@ -228,7 +228,7 @@ public class CallLocationService extends Service {
 				case TelephonyManager.CALL_STATE_RINGING:
 					//phone is ringing
 					Log.d("CallLocationService PhoneStateListener", "Phone Call from: " + incomingNumber);
-					addCallToDatabase(incomingNumber, getCurrentLocation()); //getLocation());
+					addCallToDatabase(incomingNumber, getCurrentLocation());
 					break;
 				default:
 					break;
@@ -243,12 +243,9 @@ public class CallLocationService extends Service {
         String provider = locationManager.getBestProvider(criteria, true);     
         Log.d(TAG, "Best Provider: " + provider);
         
-        Location loc = locationManager.getLastKnownLocation(provider);
-        return (loc != null) ? loc : new Location(provider);
+        Location location = locationManager.getLastKnownLocation(provider);
+        return (location != null) ? location : new Location(provider);
 	}
-	
-	// double currentLatitude = currentLocation.getLatitude();
-	// double currentLongitude = currentLocation.getLongitude();
 	
 	LocationResult locationResult = new LocationResult() {
 		@Override
@@ -256,14 +253,6 @@ public class CallLocationService extends Service {
 			//Got the location! 
 		}
 	};
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	/**

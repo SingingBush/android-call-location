@@ -24,7 +24,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity implements OnClickListener {
 	
-	private static final String TAG = "TempTestActivity";
+	private static final String TAG = MainActivity.class.getName();
 	Button buttonStart, buttonStop;
 	TextView tempfeedback;
 	Intent callLocationServiceIntent;
@@ -96,7 +96,7 @@ public class MainActivity extends Activity implements OnClickListener {
 			if (!serviceBound) {
 				Log.d(TAG, "onClick: starting service");
 				tempfeedback.setText("starting service");
-				bindService(callLocationServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+				bindService(callLocationServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE); // todo - problem here if exit app with service running
 			} else {
 				Location loc = callLocationService.getLocation();
 				tempfeedback.setText(loc.getLatitude() + " " + loc.getLongitude());
@@ -125,7 +125,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override /** Called when menu instantiated */
     public boolean onCreateOptionsMenu(Menu menu) {
     	MenuInflater inflater = getMenuInflater();
-    	inflater.inflate(R.layout.menu, menu);
+    	inflater.inflate(R.menu.mainactivity_optionsmenu, menu);
     	return true;
     }
 
@@ -135,6 +135,10 @@ public class MainActivity extends Activity implements OnClickListener {
     	case R.id.menu_Callhistory:
     		Intent callHistoryIntent = new Intent(this, CallHistoryActivity.class);
     		startActivity(callHistoryIntent);
+    		return true;
+    	case R.id.menu_Newsfeed:
+    		Intent newsfeedIntent = new Intent(this, NewsFeedActivity.class);
+    		startActivity(newsfeedIntent);
     		return true;
     	case R.id.menu_About:
     		Intent aboutIntent = new Intent(this, AboutActivity.class);

@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:background="@drawable/beveled_corner_shape"
     android:layout_margin="8sp"
-    android:padding="6dp">
+    android:padding="6dp" >
 
     <TableRow
         android:layout_width="match_parent"
