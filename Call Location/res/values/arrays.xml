@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    
+    <string-array name="mapZoomLevelEntries">
+        <item name="12">High Altitude</item>
+        <item name="14">Further Away</item>
+        <item name="16">Default</item>
+        <item name="18">Zoomed In!</item>
+    </string-array>
+    
+	<string-array name="mapZoomLevelValues">
+        <item name="12">12</item>
+        <item name="14">14</item>
+        <item name="16">16</item>
+        <item name="18">18</item>
+    </string-array>
+    
+    <string-array name="gpsUpdateIntervalEntries">
+        <item name="1000">Every 1 second</item>
+        <item name="5000">Every 5 seconds</item>
+        <item name="30000">Every 30 seconds</item>
+        <item name="60000">Every 1 minute</item>
+        <item name="300000">Every 5 minutes</item>
+    </string-array>
+    
+    <string-array name="gpsUpdateIntervalValues">
+        <item name="1000">1000</item>
+        <item name="5000">5000</item>
+        <item name="30000">30000</item>
+        <item name="60000">60000</item>
+        <item name="300000">300000</item>
+    </string-array>
+    
+	<string-array name="gpsUpdateDistanceEntries">
+        <item name="1">Every 1 meter</item>
+        <item name="5">Every 5 meters</item>
+        <item name="10">Every 10 meters</item>
+        <item name="25">Every 25 meters</item>
+        <item name="50">Every 50 meters</item>
+    </string-array>
+    
+    <string-array name="gpsUpdateDistanceValues">
+        <item name="1">1</item>
+        <item name="5">5</item>
+        <item name="10">10</item>
+        <item name="25">25</item>
+        <item name="50">50</item>
+    </string-array>
+
+</resources>

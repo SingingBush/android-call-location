@@ -3,9 +3,15 @@
 
     <string name="app_name">Call Location</string>
     
-    <string name="pref_title">title</string>
-    <string name="pref_summary">summary</string>
-    <string name="pref_key">key</string>
+    <string name="pref_category_map_title">Map Settings</string>
+    <string name="pref_maps_zoom_pref_title">Zoom Level</string>
+    <string name="pref_maps_zoom_pref_summary">Level of zoom on the Map View</string>
+       
+    <string name="pref_category_locservice_title">Location Service Settings</string>
+    <string name="pref_locservice_interval_pref_title">GPS Time Interval</string>
+    <string name="pref_locservice_interval_pref_summary">Time between GPS updates</string>
+    <string name="pref_locservice_distance_pref_title">Minimum Distance</string>
+    <string name="pref_locservice_distance_pref_summary">Distance between GPS updates</string>
     
     <string name="button_text_start">Start</string>
     <string name="button_text_stop">Stop</string>
@@ -18,6 +24,7 @@
 	<string name="callhistoryactivity_title">Call History</string>
 	<string name="callmapactivity_title">View Call Location</string>
 	<string name="newsfeedactivity_title">Latest Updates</string>
+	<string name="settingsactivity_title">Settings</string>
 	
 	<string name="newsfeedactivity_wait">Downloading Feed...</string>
 	

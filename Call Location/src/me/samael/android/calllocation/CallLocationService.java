@@ -1,9 +1,11 @@
 package me.samael.android.calllocation;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.samael.android.calllocation.RecentLocation.LocationResult;
 import me.samael.android.calllocation.data.CallDbAdapter;
+import me.samael.android.calllocation.data.SharedPrefs;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -20,6 +22,7 @@ import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 public class CallLocationService extends Service {
 	
@@ -27,19 +30,16 @@ public class CallLocationService extends Service {
 	
 	private static final boolean DEBUG_MODE = true;
 	
-	// Binder given to clients
-    private final IBinder mBinder = new LocalBinder();
-    
-    private static final long FIVE_SECONDS = 5000L;
-	private static final float FIVE_METERS = 5.0f; // 0 is lowest value can use
+	private static LocationManager locationManager = null;
 	
-	private int state;
-	public static final int STATE_NONE = 0;
-	public static final int STATE_LISTENING = 1;
+	SharedPrefs settings;
+	
+	// Binder given to clients
+    private final IBinder serviceBinder = new LocalBinder();
+	
 	private boolean gps_enabled = false;
 	private boolean network_enabled = false;
 	
-	LocationManager locationManager;
 	InnerLocationListener locationListener;
 	
 	RecentLocation lastKnownLocation;
@@ -47,9 +47,15 @@ public class CallLocationService extends Service {
 	TelephonyManager telephonyManager;
 	MyPhoneStateListener phoneStateListener;
 	private NotificationManager notificationManager;
-	Location location;
+	private Location location;
 	
 	private CallDbAdapter dbAdapter;
+	
+	private static AtomicBoolean serviceActive = new AtomicBoolean(false);
+	
+	public static boolean isActive() {
+		return serviceActive.get();
+	}
 	
 	/**
      * Class used for the client Binder.  Because we know this service always
@@ -62,18 +68,24 @@ public class CallLocationService extends Service {
         }
     }
     
-    private synchronized void setState(int state) {
-        if(DEBUG_MODE) Log.d(TAG, "setState() " + this.state + " -> " + state);
-        this.state = state;
-    }
-    
-    public synchronized int getState() {
-        return state;
-    }
+//    private synchronized void setState(int state) {
+//        if(DEBUG_MODE) Log.d(TAG, "setState() " + this.state + " -> " + state);
+//        this.state = state;
+//    }
+//    
+//    public synchronized int getState() {
+//        return state;
+//    }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+    	if(DEBUG_MODE) Log.d(TAG, "[SERVICE] onBind");
+        return serviceBinder;
+    }
+    
+    @Override
+	public boolean onUnbind(Intent intent) {
+    	return serviceBinder.isBinderAlive();
     }
 	
 	@Override
@@ -103,7 +115,9 @@ public class CallLocationService extends Service {
         locationListener = new InnerLocationListener();
         if(DEBUG_MODE) Log.d(TAG, "Inner Location Listener instantiated");    
 		
-        locationManager.requestLocationUpdates(provider, FIVE_SECONDS, FIVE_METERS, locationListener);
+        settings = SharedPrefs.getCallLocationPrefs(this);
+        
+        locationManager.requestLocationUpdates(provider, settings.getGpsTimeInterval(), settings.getGpsDistance(), locationListener);
 		
         // exceptions will be thrown if provider is not permitted.
         try {
@@ -154,17 +168,21 @@ public class CallLocationService extends Service {
 		
 		if(DEBUG_MODE) Log.v(TAG, "Stop listening to phone state");
 		telephonyManager.listen(phoneStateListener, MyPhoneStateListener.LISTEN_NONE);
-	}
-	
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		// TODO Auto-generated method stub
-		return super.onStartCommand(intent, flags, startId);
+		
+		serviceActive.set(false);
 	}
 	
 	@Override
 	public void onStart(Intent intent, int startid) {
-		if(DEBUG_MODE) Log.d(TAG, "Call Location Service started");
+		if(DEBUG_MODE) Log.d(TAG, "onStart");
+	}
+	
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		if(DEBUG_MODE) Log.d(TAG, "onStartCommand");
+		serviceActive.set(true);
+		
+		return Service.START_STICKY;
 	}
 	
 	public Location getLocation() {
@@ -172,6 +190,7 @@ public class CallLocationService extends Service {
 	}
 
 	public void setLocation(Location location) {
+		if(DEBUG_MODE) logLocation(location);
 		this.location = location;
 	}
 
@@ -192,23 +211,24 @@ public class CallLocationService extends Service {
 
 		@Override
 		public void onLocationChanged(Location location) {
-			logLocation(location);	
-			setLocation(location);
+			if (location != null) {
+				setLocation(location);
+			}
 		}
 
 		@Override
 		public void onProviderDisabled(String provider) {
-			// TODO Auto-generated method stub			
+			Toast.makeText(getApplicationContext(), provider + " Disabled",Toast.LENGTH_SHORT).show();
 		}
 
 		@Override
 		public void onProviderEnabled(String provider) {
-			// TODO Auto-generated method stub			
+			Toast.makeText(getApplicationContext(), provider + " Enabled",Toast.LENGTH_SHORT).show();	
 		}
 
 		@Override
 		public void onStatusChanged(String provider, int status, Bundle extras) {
-			// TODO Auto-generated method stub			
+			Log.v(TAG, "Status changed : " + extras.toString());		
 		}
 	}
 	

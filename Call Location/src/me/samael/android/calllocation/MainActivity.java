@@ -1,6 +1,7 @@
 package me.samael.android.calllocation;
 
 import me.samael.android.calllocation.CallLocationService.LocalBinder;
+import me.samael.android.calllocation.data.SharedPrefs;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
@@ -24,7 +25,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity implements OnClickListener {
 	
-	private static final String TAG = MainActivity.class.getName();
+	private static final String TAG = MainActivity.class.getSimpleName();
 	Button buttonStart, buttonStop;
 	TextView tempfeedback;
 	Intent callLocationServiceIntent;
@@ -62,13 +63,24 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "onStart");
+        Log.d(TAG, "onStart - " + TAG);
 	}
 	
 	@Override
     public void onResume() {
     	super.onResume();
-    	Log.d(TAG, "onResume");
+    	Log.d(TAG, "onResume - " + TAG);
+    	
+    	Log.d(TAG, " *** make sure relevant button is clickable...");
+    	buttonStart.setClickable(!CallLocationService.isActive());
+    	buttonStop.setClickable(CallLocationService.isActive());
+    	
+    	Log.d(TAG, "getting preferences...");
+    	// if preference activity is started whilst on Main Screen, onResume is called so updated settings should be applied if applicable
+    	SharedPrefs settings = SharedPrefs.getCallLocationPrefs(this);  
+		Log.v(TAG, " *** zoom preference is: " + settings.getMapZoomLevel());
+		Log.v(TAG, " *** time interval preference is: " + settings.getGpsTimeInterval());
+		Log.v(TAG, " *** distance preference is: " + settings.getGpsDistance());
 	}
 	
 	@Override
@@ -96,16 +108,14 @@ public class MainActivity extends Activity implements OnClickListener {
 			if (!serviceBound) {
 				Log.d(TAG, "onClick: starting service");
 				tempfeedback.setText("starting service");
+				startService(callLocationServiceIntent);
 				bindService(callLocationServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE); // todo - problem here if exit app with service running
 			} else {
 				Location loc = callLocationService.getLocation();
 				tempfeedback.setText(loc.getLatitude() + " " + loc.getLongitude());
 			}
-			//Log.d(TAG, "onClick: starting service");
-			//tempfeedback.setText("starting service");
-			//startService(service);
-			//service.addFlags(1);
-			//bindService(service, mConnection, Context.BIND_AUTO_CREATE);
+			buttonStart.setClickable(false);
+			buttonStop.setClickable(true);
 			break;
 		case R.id.buttonStop:
 			// Unbind from the service
@@ -115,9 +125,9 @@ public class MainActivity extends Activity implements OnClickListener {
 	            unbindService(serviceConnection);
 	            serviceBound = false;
 	        }
-			//Log.d(TAG, "onClick: stopping service");
-			//tempfeedback.setText("stopping service");
-			//stopService(service);
+	        buttonStart.setClickable(true);
+	    	buttonStop.setClickable(false);
+			stopService(callLocationServiceIntent);
 			break;
 		}
 	}
@@ -133,29 +143,20 @@ public class MainActivity extends Activity implements OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
     	case R.id.menu_Callhistory:
-    		Intent callHistoryIntent = new Intent(this, CallHistoryActivity.class);
-    		startActivity(callHistoryIntent);
+    		startActivity(new Intent(this, CallHistoryActivity.class));
     		return true;
     	case R.id.menu_Newsfeed:
-    		Intent newsfeedIntent = new Intent(this, NewsFeedActivity.class);
-    		startActivity(newsfeedIntent);
+    		startActivity(new Intent(this, NewsFeedActivity.class));
+    		return true;
+    	case R.id.menu_Preferences:
+    		startActivity(new Intent(this, SettingsActivity.class));
     		return true;
     	case R.id.menu_About:
-    		Intent aboutIntent = new Intent(this, AboutActivity.class);
-    		startActivity(aboutIntent);
+    		startActivity(new Intent(this, AboutActivity.class));
     		return true;
-//    	case R.id.menu_Preferences:
-//    		Intent preferencesIntent = new Intent(this, VirtualRunnerPreferences.class);
-//    		startActivity(preferencesIntent);
-//    		return true;
     	}
     	return false;
     }
-    
-    
-    
-    
-    
     
 	
 	/** Defines callbacks for service binding, passed to bindService() */

@@ -44,10 +44,16 @@
             android:name=".CallMapActivity"
             android:label="@string/callmapactivity_title"
             android:screenOrientation="portrait" />
-        
-        <activity
-            android:name=".calllocation.SettingsActivity"
-            android:screenOrientation="portrait" />
+
+		<activity
+            android:label="@string/settingsactivity_title"
+            android:name=".SettingsActivity"
+            android:screenOrientation="portrait" >
+            <intent-filter >
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         
 		<activity 
             android:name=".AboutActivity"

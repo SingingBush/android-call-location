@@ -3,12 +3,39 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
     
     <PreferenceCategory
-        android:title="updating">
+        android:title="@string/pref_category_locservice_title">
         
-        <CheckBoxPreference
-            android:title="@string/pref_title"
-            android:summary="@string/pref_summary"
-            android:key="@string/pref_key" />
+        <ListPreference 
+            android:key="gps_time_interval_pref"
+            android:title="@string/pref_locservice_interval_pref_title"
+            android:summary="@string/pref_locservice_interval_pref_summary"
+            android:defaultValue="5000" 
+            android:entries="@array/gpsUpdateIntervalEntries"
+            android:entryValues="@array/gpsUpdateIntervalValues"
+        />
+        
+        <ListPreference 
+            android:key="gps_distance_pref"
+            android:title="@string/pref_locservice_distance_pref_title"
+            android:summary="@string/pref_locservice_distance_pref_summary"
+            android:defaultValue="5" 
+            android:entries="@array/gpsUpdateDistanceEntries"
+            android:entryValues="@array/gpsUpdateDistanceValues"
+        />
+            
+    </PreferenceCategory>
+    
+    <PreferenceCategory
+        android:title="@string/pref_category_map_title">
+        
+        <ListPreference 
+            android:key="zoom_pref"
+            android:title="@string/pref_maps_zoom_pref_title"
+            android:summary="@string/pref_maps_zoom_pref_summary"
+            android:defaultValue="16" 
+            android:entries="@array/mapZoomLevelEntries"
+            android:entryValues="@array/mapZoomLevelValues"
+        />
             
     </PreferenceCategory>
     
