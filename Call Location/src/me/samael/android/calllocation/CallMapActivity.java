@@ -3,6 +3,7 @@ package me.samael.android.calllocation;
 import java.util.List;
 
 import me.samael.android.calllocation.data.CallDbAdapter;
+import me.samael.android.calllocation.data.SharedPrefs;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -11,6 +12,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.graphics.drawable.Drawable;
@@ -61,7 +63,7 @@ public class CallMapActivity extends MapActivity {
                 Log.v(TAG, "Creating GeoPoint from lat: " + dlat + " and long: " + dlong);
                 
                 GeoPoint geoPoint = new GeoPoint( (int) (dlat*1E6), (int) (dlong*1E6) );
-                mapController.setZoom(16); // between 12 and 18 should be good - should be a preference
+                mapController.setZoom(SharedPrefs.getCallLocationPrefs(this).getMapZoomLevel()); // between 12 and 18 should be good - should be a preference
                 //mapController.setCenter(geoPoint);
                 mapController.animateTo(geoPoint);
                 
