@@ -78,7 +78,7 @@ public class CallDbAdapter {
 	}
 	
 	public Cursor selectAllFromCallHistory() {
-		Cursor cursor = database.query(TABLE_NAME, null, null, null, null, null, null);
+		Cursor cursor = database.query(TABLE_NAME, null, null, null, null, null, KEY_DATETIME);
 		if(cursor != null) {
 			cursor.moveToFirst();
 		}
