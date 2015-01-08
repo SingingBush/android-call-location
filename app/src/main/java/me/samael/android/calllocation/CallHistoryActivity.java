@@ -20,17 +20,18 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
 public class CallHistoryActivity extends ListActivity {
+
 	private static final String TAG = CallHistoryActivity.class.getSimpleName();
-	
+
 	private CallDbAdapter callDbAdapter;
-	
+
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.callhistory);
         
         registerForContextMenu(getListView());
-        
+
         callDbAdapter = new CallDbAdapter(this);
 	}
 	
@@ -70,14 +71,14 @@ public class CallHistoryActivity extends ListActivity {
     protected void onStart() {
 		super.onStart();
 		Log.v(TAG, "onStart");
-        
+
         try {
         	fillListView();
         } catch (Exception e) {
 			Log.v(TAG, "Exception: " + e.getMessage());
 		}
 	}
-	
+
 	@Override
     protected void onStop() {
 		Log.v(TAG, "onStop");
@@ -114,7 +115,7 @@ public class CallHistoryActivity extends ListActivity {
 		try {
 			Cursor cursor = callDbAdapter.selectAllFromCallHistory();
 			Log.v(TAG, "Cursor size: " + cursor.getCount());
-			startManagingCursor(cursor);
+			startManagingCursor(cursor); // todo: use the new android.content.CursorLoader
 			SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.callhistoryrow, cursor, fromDatabase, toRowIds);
 	        setListAdapter(adapter);
 		} catch (SQLException e) {
@@ -133,20 +134,19 @@ public class CallHistoryActivity extends ListActivity {
 	private void startCallActionForGivenRow(final long rowId) {
 		callDbAdapter.open();        		
 		Cursor cursor = callDbAdapter.selectAllFromCallHistoryWhereIdEquals(rowId);
-		int index = cursor.getColumnIndex(CallDbAdapter.KEY_PHONE_NUMBER);
-		String phonenumber = cursor.getString(index);
+		String phoneNumber = cursor.getString(cursor.getColumnIndex(CallDbAdapter.KEY_PHONE_NUMBER));
         callDbAdapter.close();
 		
-        if (phonenumber.length() > 0) {
+        if (phoneNumber.length() > 0) {
         	try {
-    			Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phonenumber));
+    			Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phoneNumber));
     			callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     			startActivity(callIntent);
     		} catch (ActivityNotFoundException e) {
     	        Log.e(TAG, "Unable to make call: " + e.getMessage());
     	    }
         } else
-        	Log.e(TAG, "Unable to phone: " + phonenumber);
+        	Log.e(TAG, "Unable to phone: " + phoneNumber);
 	}
 	
 	private void confirmDeletionOfRow(final long rowId) {
