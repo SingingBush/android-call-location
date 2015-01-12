@@ -3,12 +3,9 @@ package me.samael.android.calllocation;
 import me.samael.android.calllocation.data.CallDbAdapter;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.app.LoaderManager;
 import android.content.ActivityNotFoundException;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.net.Uri;
@@ -22,15 +19,11 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
-public class CallHistoryActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class CallHistoryActivity extends ListActivity {
 
 	private static final String TAG = CallHistoryActivity.class.getSimpleName();
 
-    private static final int LOADER_ID = 15563;
-
 	private CallDbAdapter callDbAdapter;
-    String[] fromDatabase = { CallDbAdapter.KEY_PHONE_NUMBER, CallDbAdapter.KEY_DATETIME };
-    int[] toRowIds = { R.id.callHistoryPhoneNumber, R.id.callHistoryDateTime };
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,6 +33,20 @@ public class CallHistoryActivity extends ListActivity implements LoaderManager.L
         registerForContextMenu(getListView());
 
         callDbAdapter = new CallDbAdapter(this);
+        callDbAdapter.open();
+
+        String[] fromDatabase = { CallDbAdapter.KEY_PHONE_NUMBER, CallDbAdapter.KEY_DATETIME };
+        int[] toRowIds = { R.id.callHistoryPhoneNumber, R.id.callHistoryDateTime };
+
+        try {
+            Cursor cursor = callDbAdapter.selectAllFromCallHistory();
+            Log.v(TAG, "Cursor size: " + cursor.getCount());
+            startManagingCursor(cursor); // todo: use the new android.content.CursorLoader
+            SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.callhistoryrow, cursor, fromDatabase, toRowIds);
+            setListAdapter(adapter);
+        } catch (SQLException e) {
+            Log.e(TAG, e.getMessage());
+        }
 	}
 	
 	@Override
@@ -73,32 +80,17 @@ public class CallHistoryActivity extends ListActivity implements LoaderManager.L
 		}
 		return false;		
 	}
-	
-	@Override
-    protected void onStart() {
-		super.onStart();
-		Log.v(TAG, "onStart");
 
-//        String[] fromDatabase = { CallDbAdapter.KEY_PHONE_NUMBER, CallDbAdapter.KEY_DATETIME };
-//        int[] toRowIds = { R.id.callHistoryPhoneNumber, R.id.callHistoryDateTime };
+    @Override
+    protected void onResume() {
+        callDbAdapter.open();
+        super.onResume();
+    }
 
-        SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.callhistoryrow, null, fromDatabase, toRowIds, 0);
-        setListAdapter(adapter);
-
-        LoaderManager lm = getLoaderManager();
-        lm.initLoader(LOADER_ID, null, this);
-	}
-
-	@Override
-    protected void onStop() {
-		Log.v(TAG, "onStop");
-		super.onStop();
-	}
-	
-	@Override
-    public void onDestroy() {
-    	Log.v(TAG, "exiting " + TAG);
-    	super.onDestroy();
+    @Override
+    protected void onPause() {
+        callDbAdapter.close();
+        super.onPause();
     }
 	
 	@Override
@@ -109,34 +101,12 @@ public class CallHistoryActivity extends ListActivity implements LoaderManager.L
         viewCallOnMap(rowId);
 	}
 	
-	@Override
+	@Override // gets called when selecting option from context menu
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        //fillListView();
+        final SimpleCursorAdapter adapter = (SimpleCursorAdapter) getListAdapter();
+        adapter.notifyDataSetChanged();
     }
-	
-//	private void fillListView() {
-//		Log.v(TAG, "filling CallHistory ListView");
-//        callDbAdapter.open();
-//
-//        String[] fromDatabase = { CallDbAdapter.KEY_PHONE_NUMBER, CallDbAdapter.KEY_DATETIME };
-//        int[] toRowIds = { R.id.callHistoryPhoneNumber, R.id.callHistoryDateTime };
-//
-//		try {
-//			Cursor cursor = callDbAdapter.selectAllFromCallHistory(); // throws SQLException
-//			Log.v(TAG, "Cursor size: " + cursor.getCount());
-//			startManagingCursor(cursor); // todo: use the new android.content.CursorLoader
-//			SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.callhistoryrow, null, fromDatabase, toRowIds, 0);
-//	        setListAdapter(adapter);
-//
-//            LoaderManager lm = getLoaderManager();
-//            lm.initLoader(LOADER_ID, null, this);
-//		} catch (SQLException e) {
-//			Log.e(TAG, e.getMessage());
-//		}
-//
-//        callDbAdapter.close();
-//	}
 	
 	private void viewCallOnMap(long rowId) {
 		Intent viewCallLocation = new Intent(this, CallMapActivity.class);
@@ -145,11 +115,10 @@ public class CallHistoryActivity extends ListActivity implements LoaderManager.L
 	}
 	
 	private void startCallActionForGivenRow(final long rowId) {
-		callDbAdapter.open();        		
+
 		Cursor cursor = callDbAdapter.selectAllFromCallHistoryWhereIdEquals(rowId);
 		String phoneNumber = cursor.getString(cursor.getColumnIndex(CallDbAdapter.KEY_PHONE_NUMBER));
-        callDbAdapter.close();
-		
+
         if (phoneNumber.length() > 0) {
         	try {
     			Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phoneNumber));
@@ -180,41 +149,22 @@ public class CallHistoryActivity extends ListActivity implements LoaderManager.L
 	}
 	
 	private void deleteRowFromDatabase(final long rowId) {
-		Log.v(TAG, "deleteRowFromDatabase: " + rowId);
-        callDbAdapter.open();        
+
+		Log.v(TAG, String.format("delete row %d from database", rowId));
+
         if (callDbAdapter.deleteFromCallHistoryWhereIdEquals(rowId)) {
+            final SimpleCursorAdapter adapter = (SimpleCursorAdapter) getListAdapter();
+
+            try {
+                Cursor cursor = callDbAdapter.selectAllFromCallHistory();
+                adapter.swapCursor(cursor);
+            } catch (SQLException e) {
+                Log.e(TAG, "Unable to get call history", e);
+            }
+
         	Log.v(TAG, "Table row deleted: " + rowId);
-        } else
-        	Log.e(TAG, "Unable to delete row: " + rowId);
-        callDbAdapter.close();
-        //fillListView(); // need to refresh the list
-	}
-
-    // loader methods::
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.v(TAG, "onCreateLoader");
-        // Create a new CursorLoader with the following query parameters.
-        return new CursorLoader(this, null, null, null, null, CallDbAdapter.KEY_DATETIME);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.v(TAG, "onLoadFinished");
-        switch (loader.getId()) {
-            case LOADER_ID:
-                // The asynchronous load is complete and the data
-                // is now available for use. Only now can we associate
-                // the queried Cursor with the SimpleCursorAdapter.
-                SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.callhistoryrow, data, fromDatabase, toRowIds, 0);
-                setListAdapter(adapter);
-                break;
+        } else {
+            Log.e(TAG, "Unable to delete row: " + rowId);
         }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        Log.v(TAG, "onLoaderReset");
-    }
+	}
 }
