@@ -29,7 +29,8 @@
 	        android:layout_height="130dp"
 	        android:src="@drawable/icon_launcher"
 	        android:padding="10dp"
-	        android:layout_gravity="center_horizontal" />
+	        android:layout_gravity="center_horizontal"
+            tools:ignore="ContentDescription" />
     </LinearLayout>
 
     <LinearLayout
