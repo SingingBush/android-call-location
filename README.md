@@ -1,6 +1,8 @@
 android-call-location
 =====================
 
+[![Build Status](https://travis-ci.org/SingingBush/android-call-location.png)](https://travis-ci.org/SingingBush/android-call-location)
+
 ### Android application to associate geo-location to call history ###
 
 
