@@ -41,7 +41,7 @@ dependencies {
     //compile 'com.android.support:support-v4:18.+'
     //compile 'com.android.support:appcompat-v7:18.+'
 
-    compile 'com.google.android.gms:play-services-maps:6.+'
+    compile 'com.google.android.gms:play-services-maps:8.4.0'
 }
 
 import groovy.swing.SwingBuilder
