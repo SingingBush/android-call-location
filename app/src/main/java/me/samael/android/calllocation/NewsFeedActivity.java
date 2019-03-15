@@ -13,6 +13,7 @@ import me.samael.android.calllocation.RSS.RssItem;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,7 +27,9 @@ public class NewsFeedActivity extends ListActivity {
 	
 	private static final String TAG = NewsFeedActivity.class.getName();
 	private ProgressDialog progressBar;
-	
+
+	private DownLoadNewsFeed _downLoadNewsFeedTask;
+
 	private RssFeed rssFeed = null;
 	private ArrayList<RssItem> rssItems;
 	
@@ -34,13 +37,17 @@ public class NewsFeedActivity extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.callhistory);
-		
-		new DownLoadNewsFeed().execute("http://feeds.bbci.co.uk/news/technology/rss.xml"); // todo replace URL with the projects RSS feed
+
+		_downLoadNewsFeedTask = new DownLoadNewsFeed();
+		_downLoadNewsFeedTask.execute("https://feeds.bbci.co.uk/news/technology/rss.xml"); // todo replace URL with the projects RSS feed
 	}
 	
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
+		if(AsyncTask.Status.RUNNING.equals(_downLoadNewsFeedTask.getStatus())) {
+		    _downLoadNewsFeedTask.cancel(true);
+        }
 		super.onDestroy();
 	}
 	
@@ -128,7 +135,13 @@ public class NewsFeedActivity extends ListActivity {
 	private void showProgressBar() {
 		progressBar = new ProgressDialog(NewsFeedActivity.this);
 		progressBar.setMessage(getText(R.string.newsfeedactivity_wait));
-		progressBar.setCancelable(false);
+		progressBar.setCancelable(true);
+		progressBar.setOnCancelListener(new DialogInterface.OnCancelListener() {
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				_downLoadNewsFeedTask.cancel(true);
+			}
+		});
 		progressBar.show();
 	}
 	

@@ -2,7 +2,15 @@ package me.samael.android.calllocation;
 
 import me.samael.android.calllocation.CallLocationService.LocalBinder;
 import me.samael.android.calllocation.data.SharedPrefs;
+
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,16 +31,24 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.TextView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+
 public class MainActivity extends Activity implements OnClickListener {
-	
+
 	private static final String TAG = MainActivity.class.getSimpleName();
+	private static final String CHANNEL_ID = "3984275";
+	private static final int LOCATION_REQUEST_CODE = 45367452;
+
 	Button buttonStart, buttonStop;
 	TextView tempfeedback;
 	Intent callLocationServiceIntent;
-	
+
 	CallLocationService callLocationService;
+	private FusedLocationProviderClient _fusedLocationClient;
 	boolean serviceBound = false;
-	
+
 	@Override
 	public void onAttachedToWindow() {
 		super.onAttachedToWindow();
@@ -44,91 +60,123 @@ public class MainActivity extends Activity implements OnClickListener {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
+
+        createNotificationChannel();
+
 		Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/AmputaBangiz.ttf");
-        TextView tv = (TextView) findViewById(R.id.application_title);
-        tv.setTypeface(tf);
-		
+		TextView tv = (TextView) findViewById(R.id.application_title);
+		tv.setTypeface(tf);
+
 		buttonStart = (Button) findViewById(R.id.buttonStart);
 		buttonStop = (Button) findViewById(R.id.buttonStop);
-		
+
 		buttonStart.setOnClickListener(this);
 		buttonStop.setOnClickListener(this);
-		
+
 		tempfeedback = (TextView) findViewById(R.id.tempfeedback);
-		
+
 		callLocationServiceIntent = new Intent(this, CallLocationService.class);
 	}
-	
+
 	@Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart - " + TAG);
+	protected void onStart() {
+		super.onStart();
+		Log.d(TAG, "onStart - " + TAG);
+
+		_fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 	}
-	
+
 	@Override
-    public void onResume() {
-    	super.onResume();
-    	Log.d(TAG, "onResume - " + TAG);
-    	
-    	Log.d(TAG, " *** make sure relevant button is clickable...");
-    	buttonStart.setClickable(!CallLocationService.isActive());
-    	buttonStop.setClickable(CallLocationService.isActive());
-    	
-    	Log.d(TAG, "getting preferences...");
-    	// if preference activity is started whilst on Main Screen, onResume is called so updated settings should be applied if applicable
-    	SharedPrefs settings = SharedPrefs.getCallLocationPrefs(this);  
+	public void onResume() {
+		super.onResume();
+		Log.d(TAG, "onResume - " + TAG);
+
+		Log.d(TAG, " *** make sure relevant button is clickable...");
+		buttonStart.setClickable(!CallLocationService.isActive());
+		buttonStop.setClickable(CallLocationService.isActive());
+
+		Log.d(TAG, "getting preferences...");
+		// if preference activity is started whilst on Main Screen, onResume is called so updated settings should be applied if applicable
+		SharedPrefs settings = SharedPrefs.getCallLocationPrefs(this);
 		Log.v(TAG, " *** zoom preference is: " + settings.getMapZoomLevel());
 		Log.v(TAG, " *** time interval preference is: " + settings.getGpsTimeInterval());
 		Log.v(TAG, " *** distance preference is: " + settings.getGpsDistance());
 	}
-	
+
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d(TAG, "onPause");	
+		Log.d(TAG, "onPause");
 	}
-    
-    @Override
-    protected void onStop() {
-    	Log.d(TAG, "onStop");	
-        super.onStop();        
-    }
-        
-    @Override
+
+	@Override
+	protected void onStop() {
+		Log.d(TAG, "onStop");
+		super.onStop();
+	}
+
+	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		super.onDestroy();
 	}
 
-	//@Override
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(LOCATION_REQUEST_CODE == requestCode) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "permission granted");
+                //_fusedLocationClient.getLastLocation().addOnSuccessListener()
+            }
+        }
+    }
+
+	@Override
 	public void onClick(View view) {
 		switch (view.getId()) {
-		case R.id.buttonStart:
-			if (!serviceBound) {
-				Log.d(TAG, "onClick: starting service");
-				tempfeedback.setText("starting service");
-				startService(callLocationServiceIntent);
-				bindService(callLocationServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE); // todo - problem here if exit app with service running
-			} else {
-				Location loc = callLocationService.getLocation();
-				tempfeedback.setText(loc.getLatitude() + " " + loc.getLongitude());
-			}
-			buttonStart.setClickable(false);
-			buttonStop.setClickable(true);
-			break;
-		case R.id.buttonStop:
-			// Unbind from the service
-	        if (serviceBound) {
-	        	Log.d(TAG, "onClick: stopping service");
-				tempfeedback.setText("stopping service");
-	            unbindService(serviceConnection);
-	            serviceBound = false;
-	        }
-	        buttonStart.setClickable(true);
-	    	buttonStop.setClickable(false);
-			stopService(callLocationServiceIntent);
-			break;
+			case R.id.buttonStart:
+				if (!serviceBound) {
+					Log.d(TAG, "onClick: starting service");
+					tempfeedback.setText("starting service");
+
+					if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+					    ActivityCompat.requestPermissions(this, new String[] {
+								android.Manifest.permission.ACCESS_FINE_LOCATION,
+								android.Manifest.permission.ACCESS_COARSE_LOCATION
+						}, LOCATION_REQUEST_CODE);
+					}
+
+					final LocationRequest locationRequest = new LocationRequest();
+					locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+					locationRequest.setInterval(20 * 1000);
+
+					//_fusedLocationClient.requestLocationUpdates(locationRequest, PendingIntent.getService());
+
+                    // startForegroundService(callLocationServiceIntent);
+                    startService(callLocationServiceIntent);
+                    bindService(callLocationServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE); // todo - problem here if exit app with service running
+				} else {
+					final Location loc = callLocationService.getLocation();
+					tempfeedback.setText(loc != null ? loc.getLatitude() + " " + loc.getLongitude() : "Unknown");
+				}
+				buttonStart.setClickable(false);
+				buttonStop.setClickable(true);
+				break;
+			case R.id.buttonStop:
+				// Unbind from the service
+				if (serviceBound) {
+					Log.d(TAG, "onClick: stopping service");
+					tempfeedback.setText("stopping service");
+					unbindService(serviceConnection);
+					serviceBound = false;
+				}
+				buttonStart.setClickable(true);
+				buttonStop.setClickable(false);
+				stopService(callLocationServiceIntent);
+				break;
 		}
 	}
 	
@@ -176,7 +224,31 @@ public class MainActivity extends Activity implements OnClickListener {
             serviceBound = false;
         }
     };
-    
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            final NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    getString(R.string.channel_name),
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+
+            channel.setDescription(getString(R.string.channel_description));
+
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            final NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            if(notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            } else {
+                Log.w(TAG, "unable to create notification channel");
+            }
+        }
+    }
+
     // The BroadcastReceiver that listens for updates from the
     // CallLocationService
     private final BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {

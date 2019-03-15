@@ -41,4 +41,7 @@
 	<string name="callhistory_contextmenu_delete">Delete Entry</string>
 	<string name="callhistory_contextmenu_confirm_deletion">Are you sure?</string>
 
+    <string name="channel_name">CLChan</string>
+	<string name="channel_description">dsafgoudsfgohi dsf</string>
+
 </resources>
