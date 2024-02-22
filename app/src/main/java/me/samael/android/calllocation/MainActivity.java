@@ -29,10 +29,12 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 //import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 
-public class MainActivity extends Activity implements OnClickListener {
+public class MainActivity extends AppCompatActivity implements OnClickListener {
 	
 	private static final String TAG = MainActivity.class.getSimpleName();
 	private static final String CHANNEL_ID = "3984275";

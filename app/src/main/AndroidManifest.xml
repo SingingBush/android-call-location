@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="me.samael.android.calllocation">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <permission
         android:name="me.samael.android.calllocation.maps.permission.MAPS_RECEIVE"
@@ -28,9 +28,15 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/icon_launcher"
         android:label="@string/app_name"
-        android:theme="@style/CarbonTheme" >
+        android:theme="@style/CarbonTheme"
+        android:supportsRtl="false"
+        tools:targetApi="31"
+        >
         
         <!--<uses-library android:name="com.google.android.maps" />-->
 
