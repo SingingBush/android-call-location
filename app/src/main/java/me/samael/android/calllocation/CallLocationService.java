@@ -12,6 +12,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -24,10 +25,13 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+
 public class CallLocationService extends Service {
 	
 	private static final String TAG = CallLocationService.class.getSimpleName();
-	
+	private static final String CHANNEL_ID = "3984275";
+	private static final int LOCATION_REQUEST_CODE = 45367452;
 	private static final boolean DEBUG_MODE = true;
 	
 	private static LocationManager locationManager = null;
@@ -79,7 +83,9 @@ public class CallLocationService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-    	if(DEBUG_MODE) Log.d(TAG, "[SERVICE] onBind");
+    	if(DEBUG_MODE) {
+			Log.d(TAG, "[SERVICE] onBind");
+		}
         return serviceBinder;
     }
     
@@ -116,7 +122,20 @@ public class CallLocationService extends Service {
         if(DEBUG_MODE) Log.d(TAG, "Inner Location Listener instantiated");    
 		
         settings = SharedPrefs.getCallLocationPrefs(this);
-        
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, settings.getGpsTimeInterval(), settings.getGpsDistance(), locationListener);
+
+			//ActivityCompat.requestPermissions(this, new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 111);
+        	// TODO: Consider calling
+			//    ActivityCompat#requestPermissions
+			// here to request the missing permissions, and then overriding
+			//   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+			// to handle the case where the user grants the permission. See the documentation
+			// for ActivityCompat#requestPermissions for more details.
+			return;
+		}
         locationManager.requestLocationUpdates(provider, settings.getGpsTimeInterval(), settings.getGpsDistance(), locationListener);
 		
         // exceptions will be thrown if provider is not permitted.
@@ -247,7 +266,7 @@ public class CallLocationService extends Service {
 					break;
 				case TelephonyManager.CALL_STATE_RINGING:
 					//phone is ringing
-					Log.d("CallLocationService PhoneStateListener", "Phone Call from: " + incomingNumber);
+					Log.d("PhoneStateListener", "Phone Call from: " + incomingNumber);
 					addCallToDatabase(incomingNumber, getCurrentLocation());
 					break;
 				default:
@@ -262,7 +281,10 @@ public class CallLocationService extends Service {
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         String provider = locationManager.getBestProvider(criteria, true);     
         Log.d(TAG, "Best Provider: " + provider);
-        
+
+		if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        	return new Location(provider); // todo: fix  this
+		}
         Location location = locationManager.getLastKnownLocation(provider);
         return (location != null) ? location : new Location(provider);
 	}
@@ -279,16 +301,21 @@ public class CallLocationService extends Service {
      * Shows a notification in the status bar while service is running.
      */
     private void showNotification() {
-        CharSequence appName = getText(R.string.app_name);
-        CharSequence notificationSubText = getText(R.string.service_subtext);
-        
-        Notification notification = new Notification(R.drawable.icon_launcher, appName, System.currentTimeMillis());
+		final Notification notification = new Notification.Builder(getApplicationContext(), CHANNEL_ID)
+				.setSmallIcon(R.drawable.icon_launcher)
+				.setTicker(getText(R.string.app_name))
+				.setSubText(getText(R.string.service_subtext))
+				.setWhen(System.currentTimeMillis())
+				.build();
+
         notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
         
         //Context context = getApplicationContext();       
-        Intent mainActivityIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, mainActivityIntent, 0);
-        notification.setLatestEventInfo(this, appName, notificationSubText, contentIntent);
+//        Intent mainActivityIntent = new Intent(this, MainActivity.class);
+//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, mainActivityIntent, 0);
+
+        // todo: fix this:
+        //notification.setLatestEventInfo(this, appName, notificationSubText, contentIntent);
         
         notificationManager.notify(R.string.app_name, notification);
     }
